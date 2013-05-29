@@ -5,7 +5,9 @@
 // canvas
 var canvas = document.getElementById("canvas");
 var context = canvas.getContext("2d");
-var canvasPosition = getElementPosition(document.getElementById("canvas"));
+// var canvas = $('#canvas');
+// var context = canvas[0].getContext('2d');
+var canvasPosition = $(canvas).position();
 var width;
 var height;
 // particles
@@ -14,7 +16,7 @@ var noise = new ClassicalNoise();
 var simNoise = new SimplexNoise();
 var count = 0;
 var multIn = .01;
-var multOut = 1.0;
+var multOut = 3.0;
 var damping = 0.8;
 var particleCount = 500;
 // mouse
@@ -34,15 +36,15 @@ function setup() {
 	}
 	// gui
 	var gui = new dat.GUI();
-	gui.add(this, 'multIn', 0.0, 1.0);
+	gui.add(this, 'multIn', 0.0, .1);
 	gui.add(this, 'multOut', 0.0, 10.0);
 	gui.add(this, 'damping', 0.0, 1.0);
 	// stats
-	stats.setMode(0); // 0: fps, 1: ms
-	stats.domElement.style.position = 'absolute';
-	stats.domElement.style.left = '0px';
-	stats.domElement.style.top = '0px';
-	document.body.appendChild( stats.domElement );
+	// stats.setMode(0); // 0: fps, 1: ms
+	// stats.domElement.style.position = 'absolute';
+	// stats.domElement.style.left = '0px';
+	// stats.domElement.style.top = '0px';
+	// document.body.appendChild( stats.domElement );
 	// start request animation frame loop
 	onAnimFrame();
 }
@@ -149,36 +151,14 @@ $(canvas).mouseup(function() {
 	isMouseDown = false;
 });
 $(canvas).mousemove(function(event) {
-	mouseX = (event.pageX - canvasPosition.x);
-	mouseY = (event.pageY - canvasPosition.y);
+	mouseX = (event.pageX - canvasPosition.left);
+	mouseY = (event.pageY - canvasPosition.top);
 });
 
 
 ///////////////////////////////////////////////////////////////////////////////
 // helpers
 /////////////////////////////////////////////////////////////////////////////
-
-// http://js-tut.aardon.de/js-tut/tutorial/position.html
-function getElementPosition(element) {
-	var elem = element,
-		tagname = "",
-		x = 0,
-		y = 0;
-	while ((typeof(elem) == "object") && (typeof(elem.tagName) != "undefined")) {
-		y += elem.offsetTop;
-		x += elem.offsetLeft;
-		tagname = elem.tagName.toUpperCase();
-		if (tagname == "BODY") elem = 0;
-		if (typeof(elem) == "object") {
-			if (typeof(elem.offsetParent) == "object")
-				elem = elem.offsetParent;
-		}
-	}
-	return {
-		x: x,
-		y: y
-	};
-}
 
 // requestAnim shim layer by Paul Irish
 window.requestAnimFrame = (function(){
