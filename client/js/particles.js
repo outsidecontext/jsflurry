@@ -47,6 +47,8 @@ function setup() {
 	// document.body.appendChild( stats.domElement );
 	// start request animation frame loop
 	onAnimFrame();
+	// hide loader
+	$("#loader").hide();
 }
 
 function createParticle() {
