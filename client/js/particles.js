@@ -24,6 +24,7 @@ var particleCount = 600;
 var mouseX = 0;
 var mouseY = 0;
 var isMouseDown = false;
+var lockToMouse = false;
 // stats
 var stats = new Stats();
 var showStats = true;
@@ -48,6 +49,7 @@ function setup() {
 		gui.add(this, 'radMult', 0.0, 10.0);
 		gui.add(this, 'multOut', 0.0, 10.0);
 		gui.add(this, 'damping', 0.0, 1.0);
+		gui.add(this, 'lockToMouse');
 	}
 	onResize();
 	for (var i = 0; i < particleCount; i++) {
@@ -73,7 +75,7 @@ function createParticle() {
 	var r = Math.random() * 255 >> 0;
 	var g = Math.random() * 255 >> 0;
 	var b = Math.random() * 255 >> 0;
-	this.color = "rgba(" + r + ", " + g + ", " + b + ", 0.5)";
+	this.color = "rgba(" + r + ", " + g + ", " + b + ", .6)";
 	this.radius = Math.random() * 10 + 10;
 }
 
@@ -86,8 +88,10 @@ function update(){
 
 function draw() {
 	// clear
-	context.fillStyle = "#ffffff";
+	context.globalCompositeOperation = "source-over";
+	context.fillStyle = "#eeeeee";
 	context.fillRect(0, 0, width, height);
+	// context.globalCompositeOperation = "lighter";
 	// mouse pos indicator
 	if (isMouseDown) {
 		context.beginPath();
@@ -104,7 +108,7 @@ function draw() {
 		if (n < 0) n *= -1;
 		context.fillStyle = "rgb(" + Math.round(n * 4 * 255) + ", 0, 0)";
 		context.fillStyle = p.color
-		var rad = p.radius * (n * radMult);
+		var rad = p.radius * (n * radMult) + 1;
 		context.arc(p.x, p.y, rad, Math.PI * 2, false);
 		context.fill();
 		// update position
@@ -114,9 +118,9 @@ function draw() {
 		p.vy = (p.ry * 4);
 		// attract to mouse
 		//if (i==0) console.log(mouseX, p.x, p.rx);
-		if (isMouseDown) {
-			p.vx += (mouseX - p.x) * p.rx;
-			p.vy += (mouseY - p.y) * p.ry;
+		if (isMouseDown || lockToMouse) {
+			p.vx += (mouseX - p.x) * p.rx * damping * n;
+			p.vy += (mouseY - p.y) * p.ry * damping * n;
 		}
 		// update velocity and position
 		p.vx += noise.noise(p.x * multIn, p.y * multIn, count * multIn) * multOut;
