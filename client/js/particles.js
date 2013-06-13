@@ -70,8 +70,9 @@ function setup() {
 function createParticle() {
 	this.x = Math.random() * width;
 	this.y = Math.random() * height;
-	this.rx = Math.random();
-	this.ry = Math.random();
+	this.rx = randomInRange(-1, 1);
+	this.ry = randomInRange(-1, 1);
+	this.rnd = Math.random();
 	var r = Math.random() * 255 >> 0;
 	var g = Math.random() * 255 >> 0;
 	var b = Math.random() * 255 >> 0;
@@ -89,9 +90,9 @@ function update(){
 function draw() {
 	// clear
 	context.globalCompositeOperation = "source-over";
-	context.fillStyle = "#eeeeee";
+	context.fillStyle = "#001123";
 	context.fillRect(0, 0, width, height);
-	// context.globalCompositeOperation = "lighter";
+	context.globalCompositeOperation = "lighter";
 	// mouse pos indicator
 	if (isMouseDown) {
 		context.beginPath();
@@ -119,9 +120,13 @@ function draw() {
 		// attract to mouse
 		//if (i==0) console.log(mouseX, p.x, p.rx);
 		if (isMouseDown || lockToMouse) {
-			p.vx += (mouseX - p.x) * p.rx * damping * n;
-			p.vy += (mouseY - p.y) * p.ry * damping * n;
+			p.vx += (mouseX - p.x) * p.rnd * damping;
+			p.vy += (mouseY - p.y) * p.rnd * damping;
 		}
+		// else if (i > 0) {
+		// 	p.vx += (particles[0].x - p.x) * p.rnd * damping * n;
+		// 	p.vy += (particles[0].y - p.y) * p.rnd * damping * n;
+		// }
 		// update velocity and position
 		p.vx += noise.noise(p.x * multIn, p.y * multIn, count * multIn) * multOut;
 		p.vy += noise.noise(p.y * multIn, p.x * multIn, count * multIn) * multOut;
@@ -197,6 +202,13 @@ document.addEventListener('touchmove', function(e) {
 ///////////////////////////////////////////////////////////////////////////////
 // helpers
 /////////////////////////////////////////////////////////////////////////////
+
+function randomInRange( $min, $max, $precision ) {
+	if( typeof( $precision ) == 'undefined') {
+		$precision = 2;
+	}
+	return parseFloat( Math.min( $min + ( Math.random() * ( $max - $min ) ), $max ).toFixed( $precision ) );
+};
 
 // requestAnim shim layer by Paul Irish
 window.requestAnimFrame = (function(){
