@@ -37,10 +37,10 @@ var isMobile = false;
 function setup() {
 	if( /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent) ) {
 		isMobile = true;
-		particleCount = 50;
+		particleCount = 200;
 		multOut = 3;
-		radMult = 2;
-		damping  = .7;
+		radMult = 1;
+		damping  = .85;
 	}
 	else {
 		// gui
@@ -120,8 +120,8 @@ function draw() {
 		// attract to mouse
 		//if (i==0) console.log(mouseX, p.x, p.rx);
 		if (isMouseDown || lockToMouse) {
-			p.vx += (mouseX - p.x) * p.rnd * damping;
-			p.vy += (mouseY - p.y) * p.rnd * damping;
+			p.vx += (mouseX - p.x) * p.rnd * damping * 0.1;
+			p.vy += (mouseY - p.y) * p.rnd * damping * 0.1;
 		}
 		// else if (i > 0) {
 		// 	p.vx += (particles[0].x - p.x) * p.rnd * damping * n;
