@@ -24,6 +24,7 @@ var particleCount = 600;
 var mouseX = 0;
 var mouseY = 0;
 var isMouseDown = false;
+var lockToMouse = false;
 // stats
 var stats = new Stats();
 var showStats = true;
@@ -36,10 +37,10 @@ var isMobile = false;
 function setup() {
 	if( /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent) ) {
 		isMobile = true;
-		particleCount = 50;
+		particleCount = 200;
 		multOut = 3;
-		radMult = 2;
-		damping  = .7;
+		radMult = 1;
+		damping  = .85;
 	}
 	else {
 		// gui
@@ -48,6 +49,8 @@ function setup() {
 		gui.add(this, 'radMult', 0.0, 10.0);
 		gui.add(this, 'multOut', 0.0, 10.0);
 		gui.add(this, 'damping', 0.0, 1.0);
+		gui.add(this, 'lockToMouse');
+		gui.domElement.style.opacity = 0;
 	}
 	onResize();
 	for (var i = 0; i < particleCount; i++) {
@@ -68,12 +71,14 @@ function setup() {
 function createParticle() {
 	this.x = Math.random() * width;
 	this.y = Math.random() * height;
-	this.rx = Math.random();
-	this.ry = Math.random();
+	this.pos = new Vec2(Math.random() * width, Math.random() * height);
+	this.rx = randomInRange(-1, 1);
+	this.ry = randomInRange(-1, 1);
+	this.rnd = Math.random();
 	var r = Math.random() * 255 >> 0;
 	var g = Math.random() * 255 >> 0;
 	var b = Math.random() * 255 >> 0;
-	this.color = "rgba(" + r + ", " + g + ", " + b + ", 0.5)";
+	this.color = "rgba(" + r + ", " + g + ", " + b + ", .6)";
 	this.radius = Math.random() * 10 + 10;
 }
 
@@ -86,8 +91,10 @@ function update(){
 
 function draw() {
 	// clear
-	context.fillStyle = "#ffffff";
+	context.globalCompositeOperation = "source-over";
+	context.fillStyle = "#001123";
 	context.fillRect(0, 0, width, height);
+	context.globalCompositeOperation = "lighter";
 	// mouse pos indicator
 	if (isMouseDown) {
 		context.beginPath();
@@ -96,6 +103,7 @@ function draw() {
 		context.fill();
 	}
 	// draw particles
+	var mousePos = new Vec2(mouseX, mouseY);
 	for (var i = 0; i < particles.length; i++) {
 		var p = particles[i];
 		// draw
@@ -104,7 +112,7 @@ function draw() {
 		if (n < 0) n *= -1;
 		context.fillStyle = "rgb(" + Math.round(n * 4 * 255) + ", 0, 0)";
 		context.fillStyle = p.color
-		var rad = p.radius * (n * radMult);
+		var rad = p.radius * (n * radMult) + 1;
 		context.arc(p.x, p.y, rad, Math.PI * 2, false);
 		context.fill();
 		// update position
@@ -113,11 +121,21 @@ function draw() {
 		p.vx = (p.rx * 4);
 		p.vy = (p.ry * 4);
 		// attract to mouse
-		//if (i==0) console.log(mouseX, p.x, p.rx);
-		if (isMouseDown) {
-			p.vx += (mouseX - p.x) * p.rx;
-			p.vy += (mouseY - p.y) * p.ry;
+		if (isMouseDown || lockToMouse) {
+			var toMouse = mousePos.subV( new Vec2(p.x, p.y) );
+			var length = toMouse.lengthSqr();
+			var force = length * 0.001;
+			toMouse.normalize();
+			toMouse = toMouse.mulS(force);
+			p.vx += toMouse.x;
+			p.vy += toMouse.y;
+			// p.vx += (mouseX - p.x) * p.rnd * damping * 0.3;
+			// p.vy += (mouseY - p.y) * p.rnd * damping * 0.3;
 		}
+		// else if (i > 0) {
+		// 	p.vx += (particles[0].x - p.x) * p.rnd * damping * n;
+		// 	p.vy += (particles[0].y - p.y) * p.rnd * damping * n;
+		// }
 		// update velocity and position
 		p.vx += noise.noise(p.x * multIn, p.y * multIn, count * multIn) * multOut;
 		p.vy += noise.noise(p.y * multIn, p.x * multIn, count * multIn) * multOut;
@@ -193,6 +211,13 @@ document.addEventListener('touchmove', function(e) {
 ///////////////////////////////////////////////////////////////////////////////
 // helpers
 /////////////////////////////////////////////////////////////////////////////
+
+function randomInRange( $min, $max, $precision ) {
+	if( typeof( $precision ) == 'undefined') {
+		$precision = 2;
+	}
+	return parseFloat( Math.min( $min + ( Math.random() * ( $max - $min ) ), $max ).toFixed( $precision ) );
+};
 
 // requestAnim shim layer by Paul Irish
 window.requestAnimFrame = (function(){
