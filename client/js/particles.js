@@ -50,6 +50,7 @@ function setup() {
 		gui.add(this, 'multOut', 0.0, 10.0);
 		gui.add(this, 'damping', 0.0, 1.0);
 		gui.add(this, 'lockToMouse');
+		gui.domElement.style.opacity = 0;
 	}
 	onResize();
 	for (var i = 0; i < particleCount; i++) {
@@ -70,6 +71,7 @@ function setup() {
 function createParticle() {
 	this.x = Math.random() * width;
 	this.y = Math.random() * height;
+	this.pos = new Vec2(Math.random() * width, Math.random() * height);
 	this.rx = randomInRange(-1, 1);
 	this.ry = randomInRange(-1, 1);
 	this.rnd = Math.random();
@@ -101,6 +103,7 @@ function draw() {
 		context.fill();
 	}
 	// draw particles
+	var mousePos = new Vec2(mouseX, mouseY);
 	for (var i = 0; i < particles.length; i++) {
 		var p = particles[i];
 		// draw
@@ -118,10 +121,16 @@ function draw() {
 		p.vx = (p.rx * 4);
 		p.vy = (p.ry * 4);
 		// attract to mouse
-		//if (i==0) console.log(mouseX, p.x, p.rx);
 		if (isMouseDown || lockToMouse) {
-			p.vx += (mouseX - p.x) * p.rnd * damping * 0.1;
-			p.vy += (mouseY - p.y) * p.rnd * damping * 0.1;
+			var toMouse = mousePos.subV( new Vec2(p.x, p.y) );
+			var length = toMouse.lengthSqr();
+			var force = length * 0.001;
+			toMouse.normalize();
+			toMouse = toMouse.mulS(force);
+			p.vx += toMouse.x;
+			p.vy += toMouse.y;
+			// p.vx += (mouseX - p.x) * p.rnd * damping * 0.3;
+			// p.vy += (mouseY - p.y) * p.rnd * damping * 0.3;
 		}
 		// else if (i > 0) {
 		// 	p.vx += (particles[0].x - p.x) * p.rnd * damping * n;
