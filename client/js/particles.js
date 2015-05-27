@@ -19,12 +19,13 @@ var multIn = .01;
 var radMult = .2;
 var multOut = 3.0;
 var damping = 0.8;
-var particleCount = 600;
+var particleCount = 800;
 // mouse
 var mouseX = 0;
 var mouseY = 0;
 var isMouseDown = false;
 var lockToMouse = false;
+var isRepulse = false;
 // stats
 var stats = new Stats();
 var showStats = true;
@@ -49,8 +50,9 @@ function setup() {
 		gui.add(this, 'radMult', 0.0, 10.0);
 		gui.add(this, 'multOut', 0.0, 10.0);
 		gui.add(this, 'damping', 0.0, 1.0);
+		gui.add(this, 'isRepulse');
 		gui.add(this, 'lockToMouse');
-		gui.domElement.style.opacity = 0;
+		//gui.domElement.style.opacity = 0;
 	}
 	onResize();
 	for (var i = 0; i < particleCount; i++) {
@@ -75,6 +77,7 @@ function createParticle() {
 	this.rx = randomInRange(-1, 1);
 	this.ry = randomInRange(-1, 1);
 	this.rnd = Math.random();
+	this.seed = this.rnd;
 	var r = Math.random() * 255 >> 0;
 	var g = Math.random() * 255 >> 0;
 	var b = Math.random() * 255 >> 0;
@@ -124,21 +127,19 @@ function draw() {
 		if (isMouseDown || lockToMouse) {
 			var toMouse = mousePos.subV( new Vec2(p.x, p.y) );
 			var length = toMouse.lengthSqr();
-			var force = length * 0.001;
+			var force = 10;
+			if (isRepulse) {
+				if (length < 20000) force /= -1;
+				else force = 0;
+			}
 			toMouse.normalize();
 			toMouse = toMouse.mulS(force);
 			p.vx += toMouse.x;
 			p.vy += toMouse.y;
-			// p.vx += (mouseX - p.x) * p.rnd * damping * 0.3;
-			// p.vy += (mouseY - p.y) * p.rnd * damping * 0.3;
 		}
-		// else if (i > 0) {
-		// 	p.vx += (particles[0].x - p.x) * p.rnd * damping * n;
-		// 	p.vy += (particles[0].y - p.y) * p.rnd * damping * n;
-		// }
 		// update velocity and position
-		p.vx += noise.noise(p.x * multIn, p.y * multIn, count * multIn) * multOut;
-		p.vy += noise.noise(p.y * multIn, p.x * multIn, count * multIn) * multOut;
+		p.vx += noise.noise(p.x * multIn, p.y * multIn, p.seed * multIn) * multOut;
+		p.vy += noise.noise(p.y * multIn, p.x * multIn, p.seed * multIn) * multOut;
 		p.vx *= damping;
 		p.vy *= damping;
 		p.x += p.vx;
@@ -148,6 +149,8 @@ function draw() {
 		if (p.y < -50) p.y = height + 50;
 		if (p.x > width + 50) p.x = -50;
 		if (p.y > height + 50) p.y = -50;
+
+		p.seed += p.rnd;
 	}
 
 	count++;
